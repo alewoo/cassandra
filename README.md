@@ -2,6 +2,8 @@
 
 Cassandra is an advanced market analysis tool that uses machine learning to detect potential market crashes and anomalies. Named after the Greek prophet, it analyzes multiple market indicators to provide risk assessments and trading recommendations.
 
+![image](https://github.com/user-attachments/assets/da1ed7aa-5fc8-4659-9358-6495adf8ba10)
+
 ## Features
 
 - Real-time market data analysis
