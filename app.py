@@ -73,7 +73,7 @@ def main():
     # Sidebar explanations and inputs
     st.sidebar.header("📊 Market Indicators")
     
-    # NOW add the button
+    # Add the Load Current Market Data button
     if st.sidebar.button("📥 Load Current Market Data", help="Automatically fetch today's market data"):
         with st.spinner("Fetching market data..."):
             current_data = fetch_current_market_data()
@@ -92,31 +92,6 @@ def main():
     feature_values = {}
     features = model.feature_names_in_
     
-    # Create a dictionary of default values based on recent market data
-    default_values = {
-        # Market Indices
-        'BDIY': 12126.20,  # Baltic Dry Index
-        'DXY': 72.54,      # Dollar Index
-        'VIX': 17.57,      # Volatility Index
-        'MXEU': 53.95,     # MSCI Europe
-        'MXRU': 8.06,      # MSCI Russia
-        'MXIN': 51.21,     # MSCI India
-        
-        # Currency Rates
-        'JPY': 102.70,     # Japanese Yen to USD
-        
-        # Interest Rates
-        'USGG30YR': 4.67,  # 30-Year Treasury Rate
-        'USGG2YR': 2.24,   # 2-Year Treasury Rate
-        'USGG3M': 1.89,    # 3-Month Treasury Rate
-        'US0001M': 2.46,   # 1-Month LIBOR
-        'GTITL10YR': 4.63, # Italy 10Y
-        'GTITL2YR': 4.27,  # Italy 2Y
-        'GTJPY10YR': 1.67, # Japan 10Y
-        'GTJPY2YR': 0.80,  # Japan 2Y
-        'GTGBP30Y': 4.50,  # UK 30Y
-    }
-    
     for section_name, feature_list in sections:
         st.sidebar.subheader(section_name)
         for feature in feature_list:
@@ -125,7 +100,7 @@ def main():
             feature_values[feature] = st.sidebar.number_input(
                 f"{feature}",
                 help=f"Enter current {feature} value",
-                value=default_values.get(feature, 0.0),  # Use default value if available, otherwise 0.0
+                value=0.0,
                 format="%.4f",
                 key=unique_key
             )
