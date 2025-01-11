@@ -5,6 +5,8 @@ import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from data_fetcher import fetch_current_market_data
+
 # Page configuration
 st.set_page_config(
     page_title="Cassandra",
@@ -53,8 +55,34 @@ def main():
     # Load model
     model = load_model()
     
+    # Create feature groups FIRST
+    features = model.feature_names_in_
+    market_indices = [f for f in features if any(x in f for x in ['VIX', 'DXY', 'BDIY', 'MXEU', 'MXRU', 'MXIN'])]
+    rates = [f for f in features if any(x in f for x in ['USGG', 'GTTL', 'US0001M', 'GTITL', 'GTJPY', 'GTGBP'])]
+    etfs = [f for f in features if any(x in f for x in ['LF98TRUU', 'LG30TRUU', 'LP01TREU'])]
+    currencies = [f for f in features if any(x in f for x in ['JPY', 'ECSURPUS'])]
+    
+    # Define sections BEFORE the button
+    sections = [
+        ("Market Indices", market_indices),
+        ("Interest Rates", rates),
+        ("ETFs", etfs),
+        ("Currency Rates", currencies)
+    ]
+    
     # Sidebar explanations and inputs
     st.sidebar.header("📊 Market Indicators")
+    
+    # NOW add the button
+    if st.sidebar.button("📥 Load Current Market Data", help="Automatically fetch today's market data"):
+        with st.spinner("Fetching market data..."):
+            current_data = fetch_current_market_data()
+            for section_name, feature_list in sections:
+                for feature in feature_list:
+                    if feature in current_data:
+                        st.session_state[f"{section_name.lower().replace(' ', '_')}_{feature}"] = current_data[feature]
+    
+    # Then add the explanation text
     st.sidebar.markdown("""
     Enter the current values for these market indicators. 
     These help assess market conditions and potential risks.
@@ -64,19 +92,30 @@ def main():
     feature_values = {}
     features = model.feature_names_in_
     
-    # Group related features
-    market_indices = [f for f in features if any(x in f for x in ['VIX', 'DXY', 'BDIY', 'MXEU', 'MXRU', 'MXIN'])]
-    rates = [f for f in features if any(x in f for x in ['USGG', 'GTTL', 'US0001M', 'GTITL', 'GTJPY', 'GTGBP'])]
-    etfs = [f for f in features if any(x in f for x in ['LF98TRUU', 'LG30TRUU', 'LP01TREU'])]
-    currencies = [f for f in features if any(x in f for x in ['JPY', 'ECSURPUS'])]
-    
-    # Add sections to sidebar
-    sections = [
-        ("Market Indices", market_indices),
-        ("Interest Rates", rates),
-        ("ETFs", etfs),
-        ("Currency Rates", currencies)
-    ]
+    # Create a dictionary of default values based on recent market data
+    default_values = {
+        # Market Indices
+        'BDIY': 12126.20,  # Baltic Dry Index
+        'DXY': 72.54,      # Dollar Index
+        'VIX': 17.57,      # Volatility Index
+        'MXEU': 53.95,     # MSCI Europe
+        'MXRU': 8.06,      # MSCI Russia
+        'MXIN': 51.21,     # MSCI India
+        
+        # Currency Rates
+        'JPY': 102.70,     # Japanese Yen to USD
+        
+        # Interest Rates
+        'USGG30YR': 4.67,  # 30-Year Treasury Rate
+        'USGG2YR': 2.24,   # 2-Year Treasury Rate
+        'USGG3M': 1.89,    # 3-Month Treasury Rate
+        'US0001M': 2.46,   # 1-Month LIBOR
+        'GTITL10YR': 4.63, # Italy 10Y
+        'GTITL2YR': 4.27,  # Italy 2Y
+        'GTJPY10YR': 1.67, # Japan 10Y
+        'GTJPY2YR': 0.80,  # Japan 2Y
+        'GTGBP30Y': 4.50,  # UK 30Y
+    }
     
     for section_name, feature_list in sections:
         st.sidebar.subheader(section_name)
@@ -86,7 +125,7 @@ def main():
             feature_values[feature] = st.sidebar.number_input(
                 f"{feature}",
                 help=f"Enter current {feature} value",
-                value=0.0,
+                value=default_values.get(feature, 0.0),  # Use default value if available, otherwise 0.0
                 format="%.4f",
                 key=unique_key
             )
